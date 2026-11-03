@@ -6,8 +6,8 @@ import type { User } from '@/services/auth-service';
 type AuthContextValue = {
   user: User | null;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (name: string, email: string, password: string) => Promise<void>;
+  signIn: (phone: string, password: string) => Promise<void>;
+  signUp: (name: string, phone: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -28,9 +28,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const value: AuthContextValue = {
     user,
     isLoading,
-    signIn: async (email, password) => setUser(await authService.login(email, password)),
-    signUp: async (name, email, password) =>
-      setUser(await authService.register(name, email, password)),
+    signIn: async (phone, password) => setUser(await authService.login(phone, password)),
+    signUp: async (name, phone, password) =>
+      setUser(await authService.register(name, phone, password)),
     signOut: async () => {
       await authService.logout();
       setUser(null);

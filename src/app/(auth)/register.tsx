@@ -4,15 +4,17 @@ import { StyleSheet } from 'react-native';
 import AppButton from '@/components/common/AppButton';
 import AppText from '@/components/common/AppText';
 import AppTextInput from '@/components/common/AppTextInput';
+import PhoneInput from '@/components/common/PhoneInput';
 import AuthForm from '@/components/auth/AuthForm';
 import { COLORS } from '@/constants/colors';
+import { DEFAULT_COUNTRY } from '@/constants/countries';
 import { useAuth } from '@/context/auth-context';
-import { validateEmail, validateName, validatePassword } from '@/lib/validation';
+import { toE164, validateName, validatePassword, validatePhone } from '@/lib/validation';
 import { AuthError } from '@/services/auth-service';
 
 type Errors = {
   name?: string;
-  email?: string;
+  phone?: string;
   password?: string;
   confirmPassword?: string;
   form?: string;
@@ -21,7 +23,8 @@ type Errors = {
 export default function RegisterScreen() {
   const { signUp } = useAuth();
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [country, setCountry] = useState(DEFAULT_COUNTRY);
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<Errors>({});
@@ -30,7 +33,7 @@ export default function RegisterScreen() {
   const handleSubmit = async () => {
     const nextErrors: Errors = {
       name: validateName(name),
-      email: validateEmail(email),
+      phone: validatePhone(country, phone),
       password: validatePassword(password),
       confirmPassword:
         confirmPassword === password ? undefined : 'Mật khẩu xác nhận không khớp.',
@@ -41,7 +44,7 @@ export default function RegisterScreen() {
     setSubmitting(true);
     try {
       // New accounts are signed in immediately; the root guard then shows the tabs.
-      await signUp(name, email, password);
+      await signUp(name, toE164(country, phone), password);
     } catch (error) {
       setErrors({
         form: error instanceof AuthError ? error.message : 'Tạo tài khoản thất bại, vui lòng thử lại.',
@@ -74,16 +77,17 @@ export default function RegisterScreen() {
         textContentType="name"
         returnKeyType="next"
       />
-      <AppTextInput
-        label="Email"
-        placeholder="ban@example.com"
-        value={email}
-        onChangeText={setEmail}
-        error={errors.email}
-        autoCapitalize="none"
-        autoComplete="email"
-        keyboardType="email-address"
-        textContentType="emailAddress"
+      <PhoneInput
+        label="Số điện thoại"
+        country={country}
+        onCountryChange={setCountry}
+        placeholder="912 345 678"
+        value={phone}
+        onChangeText={setPhone}
+        error={errors.phone}
+        autoComplete="tel"
+        keyboardType="phone-pad"
+        textContentType="telephoneNumber"
         returnKeyType="next"
       />
       <AppTextInput

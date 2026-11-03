@@ -10,7 +10,8 @@ import { getItem, removeItem, setItem } from '@/lib/storage';
 export type User = {
   id: string;
   name: string;
-  email: string;
+  /** E.164 format, e.g. "+84912345678". */
+  phone: string;
   createdAt: string;
 };
 
@@ -19,13 +20,10 @@ type StoredAccount = User & {
   passwordHash: string;
 };
 
-const SESSION_KEY = 'vp.session';
+// v2: accounts are keyed by phone number (v1 used email), so old sessions are ignored.
+const SESSION_KEY = 'vp.session.v2';
 
 export class AuthError extends Error {}
-
-function normalizeEmail(email: string) {
-  return email.trim().toLowerCase();
-}
 
 function toHex(bytes: Uint8Array) {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
@@ -36,46 +34,47 @@ function hashPassword(password: string, salt: string) {
 }
 
 // One storage entry per account keeps each value small (SecureStore limits value size).
-async function accountKey(email: string) {
-  const digest = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, email);
-  return `vp.account.${digest}`;
+async function accountKey(phone: string) {
+  const digest = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, phone);
+  return `vp.account.v2.${digest}`;
 }
 
-async function findAccount(email: string): Promise<StoredAccount | null> {
-  const raw = await getItem(await accountKey(email));
+async function findAccount(phone: string): Promise<StoredAccount | null> {
+  const raw = await getItem(await accountKey(phone));
   return raw ? (JSON.parse(raw) as StoredAccount) : null;
 }
 
-function toUser({ id, name, email, createdAt }: StoredAccount): User {
-  return { id, name, email, createdAt };
+function toUser({ id, name, phone, createdAt }: StoredAccount): User {
+  return { id, name, phone, createdAt };
 }
 
-export async function register(name: string, email: string, password: string): Promise<User> {
-  const normalizedEmail = normalizeEmail(email);
-  if (await findAccount(normalizedEmail)) {
-    throw new AuthError('Email này đã được đăng ký.');
+/** `phone` must already be in E.164 format (see `toE164`). */
+export async function register(name: string, phone: string, password: string): Promise<User> {
+  if (await findAccount(phone)) {
+    throw new AuthError('Số điện thoại này đã được đăng ký.');
   }
 
   const salt = toHex(Crypto.getRandomBytes(16));
   const account: StoredAccount = {
     id: Crypto.randomUUID(),
     name: name.trim(),
-    email: normalizedEmail,
+    phone,
     createdAt: new Date().toISOString(),
     salt,
     passwordHash: await hashPassword(password, salt),
   };
-  await setItem(await accountKey(normalizedEmail), JSON.stringify(account));
+  await setItem(await accountKey(phone), JSON.stringify(account));
 
   const user = toUser(account);
   await setItem(SESSION_KEY, JSON.stringify(user));
   return user;
 }
 
-export async function login(email: string, password: string): Promise<User> {
-  const account = await findAccount(normalizeEmail(email));
+/** `phone` must already be in E.164 format (see `toE164`). */
+export async function login(phone: string, password: string): Promise<User> {
+  const account = await findAccount(phone);
   if (!account || (await hashPassword(password, account.salt)) !== account.passwordHash) {
-    throw new AuthError('Email hoặc mật khẩu không đúng.');
+    throw new AuthError('Số điện thoại hoặc mật khẩu không đúng.');
   }
 
   const user = toUser(account);
