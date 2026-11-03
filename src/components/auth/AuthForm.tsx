@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import React from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import AppText from '../common/AppText';
@@ -12,7 +13,10 @@ type AuthFormProps = {
   footer?: React.ReactNode;
 };
 
-// Shared shell for the login and register screens.
+/**
+ * Shared shell for the login and register screens:
+ * brand header (Dharma wheel logo, app name, tagline) above a bordered form card.
+ */
 export default function AuthForm({ title, subtitle, formError, children, footer }: AuthFormProps) {
   return (
     <KeyboardAvoidingView
@@ -24,6 +28,17 @@ export default function AuthForm({ title, subtitle, formError, children, footer 
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
+        <View style={styles.brand}>
+          <Image
+            source={require('@/assets/images/logo.svg')}
+            style={styles.logo}
+            contentFit="contain"
+            accessibilityLabel="Logo Virtual Pagoda – bánh xe Pháp luân trên tòa sen"
+          />
+          <AppText style={styles.appName}>Virtual Pagoda</AppText>
+          <AppText style={styles.tagline}>Không gian tâm linh số</AppText>
+        </View>
+
         <View style={styles.card}>
           <AppText style={styles.title}>{title}</AppText>
           <AppText style={styles.subtitle}>{subtitle}</AppText>
@@ -35,9 +50,14 @@ export default function AuthForm({ title, subtitle, formError, children, footer 
           ) : null}
 
           {children}
-        </View>
 
-        {footer ? <View style={styles.footer}>{footer}</View> : null}
+          {footer ? (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.footer}>{footer}</View>
+            </>
+          ) : null}
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -53,20 +73,51 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: SPACING.lg,
   },
+  brand: {
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+  },
+  logo: {
+    width: 96,
+    height: 96,
+  },
+  appName: {
+    fontSize: 26,
+    fontWeight: '700',
+    color: COLORS.primary,
+    marginTop: SPACING.sm,
+  },
+  tagline: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
   card: {
     width: '100%',
     maxWidth: 420,
     alignSelf: 'center',
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 16,
+    padding: SPACING.lg,
+    // Soft elevation so the card lifts off the warm background.
+    shadowColor: '#2D241E',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   title: {
-    fontSize: 30,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '700',
     textAlign: 'center',
-    marginBottom: SPACING.sm,
   },
   subtitle: {
+    fontSize: 14,
     color: COLORS.textSecondary,
     textAlign: 'center',
+    marginTop: SPACING.xs,
     marginBottom: SPACING.lg,
   },
   formError: {
@@ -79,9 +130,15 @@ const styles = StyleSheet.create({
     color: COLORS.danger,
     fontSize: 14,
   },
+  divider: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginTop: SPACING.lg,
+    marginBottom: SPACING.md,
+  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: SPACING.lg,
+    flexWrap: 'wrap',
   },
 });

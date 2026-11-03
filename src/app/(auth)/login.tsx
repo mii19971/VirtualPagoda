@@ -45,7 +45,7 @@ export default function LoginScreen() {
   return (
     <AuthForm
       title="Đăng nhập"
-      subtitle="Chào mừng bạn trở lại Virtual Pagoda."
+      subtitle="Đăng nhập bằng số điện thoại của bạn."
       formError={errors.form}
       footer={
         <>

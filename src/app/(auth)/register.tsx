@@ -56,7 +56,7 @@ export default function RegisterScreen() {
   return (
     <AuthForm
       title="Tạo tài khoản"
-      subtitle="Tham gia không gian tâm linh số."
+      subtitle="Chỉ mất một phút để bắt đầu."
       formError={errors.form}
       footer={
         <>
