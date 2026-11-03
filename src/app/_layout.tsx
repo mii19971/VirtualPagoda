@@ -45,6 +45,7 @@ function RootNavigator() {
           <Stack.Screen name="temple/[id]" options={DETAIL_SCREEN_OPTIONS} />
           <Stack.Screen name="checkout" options={DETAIL_SCREEN_OPTIONS} />
           <Stack.Screen name="order/[id]" options={DETAIL_SCREEN_OPTIONS} />
+          <Stack.Screen name="profile-edit" options={DETAIL_SCREEN_OPTIONS} />
         </Stack.Protected>
         <Stack.Protected guard={!user} redirectTo="/">
           <Stack.Screen name="(auth)" />

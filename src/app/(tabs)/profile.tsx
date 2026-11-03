@@ -1,14 +1,17 @@
+import { router } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import AppButton from '@/components/common/AppButton';
 import AppText from '@/components/common/AppText';
 import { COLORS } from '@/constants/colors';
 import { SPACING } from '@/constants/spacing';
 import { useAuth } from '@/context/auth-context';
+import { useConfirmSignOut } from '@/hooks/use-confirm-sign-out';
 import { useTabInsets } from '@/hooks/use-tab-insets';
 import { formatDateTime } from '@/lib/format';
 
 export default function ProfileScreen() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
+  const confirmSignOut = useConfirmSignOut();
   const insets = useTabInsets();
   if (!user) return null;
 
@@ -31,8 +34,9 @@ export default function ProfileScreen() {
         <AppText style={styles.muted}>Tham gia từ {formatDateTime(user.createdAt).split(' ')[0]}</AppText>
       </View>
 
-      <View style={styles.signOut}>
-        <AppButton title="Đăng xuất" variant="outline" onPress={signOut} />
+      <View style={styles.actions}>
+        <AppButton title="Chỉnh sửa thông tin" onPress={() => router.push('/profile-edit')} />
+        <AppButton title="Đăng xuất" variant="outline" onPress={confirmSignOut} />
       </View>
     </ScrollView>
   );
@@ -85,7 +89,8 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 14,
   },
-  signOut: {
+  actions: {
     marginTop: SPACING.lg,
+    gap: SPACING.sm,
   },
 });

@@ -30,12 +30,13 @@ export default function TempleScreen() {
   const offerings = offeringsFor(temple);
   const selected = offerings.find((o) => o.id === offeringId);
 
-  const goToCheckout = (withOffering: boolean) =>
+  // The checkout screen lets the user switch between offering, petition, or both.
+  const goToCheckout = (petitionOnly: boolean) =>
     router.push({
       pathname: '/checkout',
-      params: withOffering && selected
-        ? { templeId: temple.id, offeringId: selected.id }
-        : { templeId: temple.id, petitionOnly: '1' },
+      params: petitionOnly
+        ? { templeId: temple.id, mode: 'petition' }
+        : { templeId: temple.id, ...(selected ? { offeringId: selected.id } : {}) },
     });
 
   return (
@@ -80,7 +81,7 @@ export default function TempleScreen() {
             style={styles.petitionOnly}
             accessibilityRole="button"
           >
-            <AppText style={styles.petitionOnlyText}>Chỉ viết sớ, không sắp lễ ›</AppText>
+            <AppText style={styles.petitionOnlyText}>Viết sớ và dâng lễ ›</AppText>
           </Pressable>
         </View>
       </ScrollView>
@@ -93,7 +94,7 @@ export default function TempleScreen() {
           <AppText style={styles.barPrice}>{formatVND(selected?.price ?? 0)}</AppText>
         </View>
         <View style={styles.barButton}>
-          <AppButton title="Tiếp tục" onPress={() => goToCheckout(true)} disabled={!selected} />
+          <AppButton title="Tiếp tục" onPress={() => goToCheckout(false)} />
         </View>
       </View>
     </View>

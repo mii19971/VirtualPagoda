@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { FlatList, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import AppText from '@/components/common/AppText';
 import Chip from '@/components/common/Chip';
 import LunarTodayCard from '@/components/temple/LunarTodayCard';
@@ -9,6 +9,7 @@ import { COLORS } from '@/constants/colors';
 import { SPACING } from '@/constants/spacing';
 import { useAuth } from '@/context/auth-context';
 import { KIND_LABELS, REGION_LABELS, TEMPLES, type Region } from '@/data/temples';
+import { useConfirmSignOut } from '@/hooks/use-confirm-sign-out';
 import { useTabInsets } from '@/hooks/use-tab-insets';
 import { normalizeSearch } from '@/lib/format';
 
@@ -19,6 +20,7 @@ const REGION_FILTERS: { value: Region | 'all'; label: string }[] = [
 
 export default function TemplesScreen() {
   const { user } = useAuth();
+  const confirmSignOut = useConfirmSignOut();
   const insets = useTabInsets();
   const [query, setQuery] = useState('');
   const [region, setRegion] = useState<Region | 'all'>('all');
@@ -48,7 +50,20 @@ export default function TemplesScreen() {
       keyboardDismissMode="on-drag"
       ListHeaderComponent={
         <View style={styles.header}>
-          <AppText style={styles.greeting}>Xin chào, {user?.name}</AppText>
+          <View style={styles.topRow}>
+            <AppText style={styles.greeting} numberOfLines={1}>
+              Xin chào, {user?.name}
+            </AppText>
+            <Pressable
+              onPress={confirmSignOut}
+              hitSlop={10}
+              style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}
+              accessibilityRole="button"
+              accessibilityLabel="Đăng xuất"
+            >
+              <AppText style={styles.signOutText}>Đăng xuất</AppText>
+            </Pressable>
+          </View>
           <AppText style={styles.title}>Hôm nay bạn muốn dâng lễ ở đâu?</AppText>
           <LunarTodayCard />
           <TextInput
@@ -106,9 +121,32 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: SPACING.md,
   },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACING.md,
+  },
   greeting: {
+    flex: 1,
     color: COLORS.textSecondary,
     fontSize: 15,
+  },
+  signOut: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.surface,
+  },
+  signOutText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  pressed: {
+    opacity: 0.6,
   },
   title: {
     fontSize: 24,

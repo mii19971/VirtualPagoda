@@ -1,7 +1,7 @@
 import { createContext, use, useEffect, useState, type PropsWithChildren } from 'react';
 
 import * as authService from '@/services/auth-service';
-import type { User } from '@/services/auth-service';
+import type { ProfileChanges, User } from '@/services/auth-service';
 
 type AuthContextValue = {
   user: User | null;
@@ -9,6 +9,7 @@ type AuthContextValue = {
   signIn: (phone: string, password: string) => Promise<void>;
   signUp: (name: string, phone: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  updateProfile: (changes: ProfileChanges) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -34,6 +35,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
     signOut: async () => {
       await authService.logout();
       setUser(null);
+    },
+    updateProfile: async (changes) => {
+      if (!user) throw new authService.AuthError('Bạn chưa đăng nhập.');
+      setUser(await authService.updateProfile(user, changes));
     },
   };
 

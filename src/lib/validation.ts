@@ -1,4 +1,4 @@
-import type { Country } from '@/constants/countries';
+import { COUNTRIES, DEFAULT_COUNTRY, type Country } from '@/constants/countries';
 
 // Vietnamese mobile numbers without the trunk 0: 9 digits starting with 3, 5, 7, 8 or 9.
 const VN_MOBILE_PATTERN = /^[35789]\d{8}$/;
@@ -24,6 +24,20 @@ function nationalDigits(country: Country, phone: string): string {
 /** Full number in E.164 format, e.g. "+84912345678". */
 export function toE164(country: Country, phone: string): string {
   return `+${country.dialCode}${nationalDigits(country, phone)}`;
+}
+
+/**
+ * "+84912345678" → { country: Việt Nam, national: "912345678" }.
+ * Longest dial code wins; countries sharing a code (US/CA) resolve to the first listed.
+ */
+export function splitE164(phone: string): { country: Country; national: string } {
+  const digits = phone.replace(/\D/g, '');
+  const country = [...COUNTRIES]
+    .sort((a, b) => b.dialCode.length - a.dialCode.length)
+    .find((c) => digits.startsWith(c.dialCode));
+  return country
+    ? { country, national: digits.slice(country.dialCode.length) }
+    : { country: DEFAULT_COUNTRY, national: digits };
 }
 
 export function validatePhone(country: Country, phone: string): string | undefined {

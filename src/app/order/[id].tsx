@@ -74,7 +74,14 @@ export default function OrderScreen() {
               value={formatLunarDate(lunarDateOf(new Date(order.createdAt))).replace(/^ngày /, '')}
             />
             <Row label="Lễ" value={order.offeringName ?? 'Không sắp lễ'} />
-            <Row label="Sớ" value={petitionType ? petitionType.name : 'Không viết sớ'} />
+            <Row
+              label="Sớ"
+              value={
+                order.petition && petitionType
+                  ? `${petitionType.name} · ${order.petition.people.length} người`
+                  : 'Không viết sớ'
+              }
+            />
             <Row label="Trạng thái" value="Đã gửi" />
             <View style={styles.divider} />
             <Row label="Tổng cộng" value={formatVND(order.total)} strong />

@@ -82,6 +82,43 @@ export async function login(phone: string, password: string): Promise<User> {
   return user;
 }
 
+export type ProfileChanges = {
+  name: string;
+  /** E.164 format. */
+  phone: string;
+  /** Current password; required only when the phone number changes. */
+  password?: string;
+};
+
+export async function updateProfile(current: User, changes: ProfileChanges): Promise<User> {
+  const account = await findAccount(current.phone);
+  if (!account || account.id !== current.id) {
+    throw new AuthError('Không tìm thấy tài khoản, vui lòng đăng nhập lại.');
+  }
+
+  const phoneChanged = changes.phone !== account.phone;
+  if (phoneChanged) {
+    // The phone number is the login ID, so changing it requires proving account ownership.
+    if (!changes.password || (await hashPassword(changes.password, account.salt)) !== account.passwordHash) {
+      throw new AuthError('Mật khẩu hiện tại không đúng.');
+    }
+    if (await findAccount(changes.phone)) {
+      throw new AuthError('Số điện thoại này đã được dùng cho tài khoản khác.');
+    }
+  }
+
+  const updated: StoredAccount = { ...account, name: changes.name.trim(), phone: changes.phone };
+  // Write the new entry before deleting the old one so a failure never loses the account.
+  await setItem(await accountKey(updated.phone), JSON.stringify(updated));
+  if (phoneChanged) {
+    await removeItem(await accountKey(account.phone));
+  }
+
+  const user = toUser(updated);
+  await setItem(SESSION_KEY, JSON.stringify(user));
+  return user;
+}
+
 export async function logout(): Promise<void> {
   await removeItem(SESSION_KEY);
 }

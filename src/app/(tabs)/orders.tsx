@@ -7,11 +7,11 @@ import AppText from '@/components/common/AppText';
 import { COLORS } from '@/constants/colors';
 import { SPACING } from '@/constants/spacing';
 import { useAuth } from '@/context/auth-context';
-import { getPetitionType } from '@/data/petitions';
 import { getTemple } from '@/data/temples';
 import { useTabInsets } from '@/hooks/use-tab-insets';
 import { formatDateTime, formatVND } from '@/lib/format';
 import { formatLunarShort, lunarDateOf } from '@/lib/lunar';
+import { petitionSummary } from '@/lib/petition';
 import { listOrders, type Order } from '@/services/order-service';
 
 export default function OrdersScreen() {
@@ -59,8 +59,7 @@ export default function OrdersScreen() {
 
 function OrderRow({ order }: { order: Order }) {
   const temple = getTemple(order.templeId);
-  const petition = getPetitionType(order.petition?.typeId);
-  const summary = [order.offeringName, petition && `Sớ ${petition.name.toLowerCase()}`]
+  const summary = [order.offeringName, order.petition && petitionSummary(order.petition)]
     .filter(Boolean)
     .join(' · ');
 
