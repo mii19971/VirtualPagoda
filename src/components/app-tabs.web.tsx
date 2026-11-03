@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import AppText from '@/components/common/AppText';
 import { COLORS } from '@/constants/colors';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { useConfirmSignOut } from '@/hooks/use-confirm-sign-out';
 
 export default function AppTabs() {
   return (
@@ -38,11 +39,20 @@ export function TabButton({ children, isFocused, ref: _ref, ...props }: TabTrigg
 }
 
 export function CustomTabList(props: TabListProps) {
+  const confirmSignOut = useConfirmSignOut();
   return (
     <View {...props} style={styles.tabListContainer}>
       <View style={styles.innerContainer}>
         <AppText style={styles.brandText}>Virtual Pagoda</AppText>
         {props.children}
+        <View style={styles.separator} />
+        <Pressable
+          onPress={confirmSignOut}
+          style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}
+          accessibilityRole="button"
+        >
+          <AppText style={styles.signOutText}>Đăng xuất</AppText>
+        </Pressable>
       </View>
     </View>
   );
@@ -77,6 +87,24 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.7,
+  },
+  separator: {
+    width: 1,
+    height: 20,
+    backgroundColor: COLORS.border,
+    marginHorizontal: Spacing.one,
+  },
+  signOut: {
+    paddingVertical: Spacing.one,
+    paddingHorizontal: Spacing.three,
+    borderRadius: Spacing.three,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  signOutText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.danger,
   },
   tabButtonView: {
     paddingVertical: Spacing.one,

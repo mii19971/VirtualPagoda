@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { FlatList, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import AppText from '@/components/common/AppText';
 import Chip from '@/components/common/Chip';
 import LunarTodayCard from '@/components/temple/LunarTodayCard';
@@ -54,15 +54,18 @@ export default function TemplesScreen() {
             <AppText style={styles.greeting} numberOfLines={1}>
               Xin chào, {user?.name}
             </AppText>
-            <Pressable
-              onPress={confirmSignOut}
-              hitSlop={10}
-              style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}
-              accessibilityRole="button"
-              accessibilityLabel="Đăng xuất"
-            >
-              <AppText style={styles.signOutText}>Đăng xuất</AppText>
-            </Pressable>
+            {/* On web, sign-out lives in the top tab bar next to "Tài khoản". */}
+            {Platform.OS !== 'web' ? (
+              <Pressable
+                onPress={confirmSignOut}
+                hitSlop={10}
+                style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}
+                accessibilityRole="button"
+                accessibilityLabel="Đăng xuất"
+              >
+                <AppText style={styles.signOutText}>Đăng xuất</AppText>
+              </Pressable>
+            ) : null}
           </View>
           <AppText style={styles.title}>Hôm nay bạn muốn dâng lễ ở đâu?</AppText>
           <LunarTodayCard />
