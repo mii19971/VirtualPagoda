@@ -13,6 +13,7 @@ import AppText from './AppText';
 import { COLORS } from '../../constants/colors';
 import { COUNTRIES, countryFlag, type Country } from '../../constants/countries';
 import { SPACING } from '../../constants/spacing';
+import { normalizeSearch } from '../../lib/format';
 
 type PhoneInputProps = Omit<TextInputProps, 'style'> & {
   label: string;
@@ -20,15 +21,6 @@ type PhoneInputProps = Omit<TextInputProps, 'style'> & {
   country: Country;
   onCountryChange: (country: Country) => void;
 };
-
-function normalizeSearch(text: string) {
-  return text
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/đ/gi, 'd')
-    .toLowerCase()
-    .trim();
-}
 
 export default function PhoneInput({
   label,

@@ -1,31 +1,27 @@
 import { NativeTabs } from 'expo-router/native-tabs';
-import { useColorScheme } from 'react-native';
 
-import { Colors } from '@/constants/theme';
+import { COLORS } from '@/constants/colors';
 
 export default function AppTabs() {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
-
   return (
     <NativeTabs
-      backgroundColor={colors.background}
-      indicatorColor={colors.backgroundElement}
-      labelStyle={{ selected: { color: colors.text } }}>
+      backgroundColor={COLORS.surface}
+      indicatorColor={COLORS.border}
+      tintColor={COLORS.primary}
+      labelStyle={{ selected: { color: COLORS.primary } }}>
       <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/home.png')}
-          renderingMode="template"
-        />
+        <NativeTabs.Trigger.Label>Chùa & Đền</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="building.columns.fill" md="temple_buddhist" />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="explore">
-        <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
-        />
+      <NativeTabs.Trigger name="orders">
+        <NativeTabs.Trigger.Label>Lễ đã dâng</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="list.bullet.rectangle.fill" md="receipt_long" />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="profile">
+        <NativeTabs.Trigger.Label>Tài khoản</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="person.crop.circle.fill" md="account_circle" />
       </NativeTabs.Trigger>
     </NativeTabs>
   );
