@@ -1,13 +1,12 @@
 /**
- * Reads a photographed "phiếu công đức" with Claude vision and returns its fields.
+ * Reads a photographed "phiếu công đức" with the Gemini API and returns its fields.
  * Server-only: import this from `+api.ts` routes, never from app code, so the API key
- * and SDK stay out of the client bundle.
+ * stays out of the client bundle.
  */
-import Anthropic from '@anthropic-ai/sdk';
-
 import type { ReceiptExtraction, ReceiptField } from '@/services/donation-types';
 
-const MODEL = 'claude-opus-5-5';
+const DEFAULT_MODEL = 'gemini-3.6-flash';
+const TIMEOUT_MS = 60_000;
 
 const FIELDS: ReceiptField[] = [
   'receiptNumber',
@@ -66,71 +65,95 @@ export class ReceiptReadError extends Error {
   }
 }
 
-let client: Anthropic | undefined;
-
-function getClient() {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new ReceiptReadError('Máy chủ chưa cấu hình ANTHROPIC_API_KEY.', 500);
-  }
-  client ??= new Anthropic();
-  return client;
-}
+type GeminiResponse = {
+  candidates?: {
+    content?: { parts?: { text?: string; thought?: boolean }[] };
+    finishReason?: string;
+  }[];
+  promptFeedback?: { blockReason?: string };
+  error?: { code?: number; message?: string; status?: string };
+};
 
 export async function extractReceipt(imageBase64: string): Promise<ReceiptExtraction> {
-  let response: Anthropic.Beta.BetaMessage;
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new ReceiptReadError('Máy chủ chưa cấu hình GEMINI_API_KEY.', 500);
+  }
+  const model = process.env.GEMINI_MODEL || DEFAULT_MODEL;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+
+  let response: Response;
   try {
-    response = await getClient().beta.messages.create({
-      model: MODEL,
-      max_tokens: 16000,
-      // A policy decline is retried server-side on the model Anthropic recommends.
-      betas: ['server-side-fallback-2026-07-01'],
-      fallbacks: 'default',
-      output_config: {
-        effort: 'medium',
-        format: { type: 'json_schema', schema: OUTPUT_SCHEMA },
+    response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Header rather than `?key=` so the key never shows up in URL/proxy logs.
+        'x-goog-api-key': apiKey,
       },
-      system: SYSTEM_PROMPT,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 },
-            },
-            { type: 'text', text: 'Đọc phiếu công đức này.' },
-          ],
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { inlineData: { mimeType: 'image/jpeg', data: imageBase64 } },
+              { text: 'Đọc phiếu công đức này.' },
+            ],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseJsonSchema: OUTPUT_SCHEMA,
         },
-      ],
+      }),
+      signal: AbortSignal.timeout(TIMEOUT_MS),
     });
   } catch (error) {
-    if (error instanceof ReceiptReadError) throw error;
-    if (error instanceof Anthropic.RateLimitError) {
-      throw new ReceiptReadError('Hệ thống đang bận, vui lòng thử lại sau ít phút.', 429);
-    }
-    if (error instanceof Anthropic.BadRequestError) {
-      throw new ReceiptReadError('Ảnh không hợp lệ, vui lòng chụp lại.', 400);
-    }
-    if (error instanceof Anthropic.APIError) {
-      console.error('Claude API error', error.status, error.message);
-      throw new ReceiptReadError('Không đọc được phiếu, vui lòng thử lại.', 502);
-    }
-    if (error instanceof Anthropic.APIConnectionError) {
-      throw new ReceiptReadError('Không kết nối được dịch vụ đọc phiếu.', 503);
-    }
-    throw error;
+    console.error('Gemini request failed', error);
+    throw new ReceiptReadError('Không kết nối được dịch vụ đọc phiếu.', 503);
   }
 
-  if (response.stop_reason === 'refusal') {
-    throw new ReceiptReadError('Không đọc được nội dung ảnh này.', 422);
-  }
-  const text = response.content.find((b) => b.type === 'text')?.text;
-  if (response.stop_reason === 'max_tokens' || !text) {
+  const body = (await response.json().catch(() => ({}))) as GeminiResponse;
+
+  if (!response.ok) {
+    console.error('Gemini API error', response.status, body.error?.status, body.error?.message);
+    if (response.status === 429) {
+      throw new ReceiptReadError('Hệ thống đang bận, vui lòng thử lại sau ít phút.', 429);
+    }
+    if (response.status === 401 || response.status === 403) {
+      throw new ReceiptReadError('API key của dịch vụ đọc phiếu không hợp lệ.', 500);
+    }
+    if (response.status === 400 && /API key/i.test(body.error?.message ?? '')) {
+      throw new ReceiptReadError('API key của dịch vụ đọc phiếu không hợp lệ.', 500);
+    }
+    if (response.status === 404) {
+      throw new ReceiptReadError(`Không tìm thấy model "${model}".`, 500);
+    }
     throw new ReceiptReadError('Không đọc được phiếu, vui lòng thử lại.', 502);
   }
 
-  const raw = JSON.parse(text) as Record<string, unknown> & { isReceipt: boolean };
-  if (!raw.isReceipt) {
+  if (body.promptFeedback?.blockReason) {
+    throw new ReceiptReadError('Không đọc được nội dung ảnh này.', 422);
+  }
+  const candidate = body.candidates?.[0];
+  const text = candidate?.content?.parts
+    ?.filter((p) => !p.thought && p.text)
+    .map((p) => p.text)
+    .join('');
+  if (candidate?.finishReason !== 'STOP' || !text) {
+    console.error('Gemini finished without a result', candidate?.finishReason);
+    throw new ReceiptReadError('Không đọc được phiếu, vui lòng thử lại.', 502);
+  }
+
+  let raw: Record<string, unknown>;
+  try {
+    raw = JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    console.error('Gemini returned invalid JSON', text.slice(0, 200));
+    throw new ReceiptReadError('Không đọc được phiếu, vui lòng thử lại.', 502);
+  }
+  if (raw.isReceipt !== true) {
     throw new ReceiptReadError('Ảnh không phải phiếu công đức hoặc quá mờ, vui lòng chụp lại.', 422);
   }
   return normalize(raw);
