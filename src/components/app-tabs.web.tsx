@@ -18,6 +18,9 @@ export default function AppTabs() {
           <TabTrigger name="orders" href="/orders" asChild>
             <TabButton>Lễ đã dâng</TabButton>
           </TabTrigger>
+          <TabTrigger name="donations" href="/donations" asChild>
+            <TabButton>Sổ công đức</TabButton>
+          </TabTrigger>
           <TabTrigger name="profile" href="/profile" asChild>
             <TabButton>Tài khoản</TabButton>
           </TabTrigger>

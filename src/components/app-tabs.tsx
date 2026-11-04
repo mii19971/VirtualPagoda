@@ -8,6 +8,8 @@ export default function AppTabs() {
       backgroundColor={COLORS.surface}
       indicatorColor={COLORS.border}
       tintColor={COLORS.primary}
+      // Android hides unselected labels once there are 4+ tabs; always show them.
+      labelVisibilityMode="labeled"
       labelStyle={{ selected: { color: COLORS.primary } }}>
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>Chùa & Đền</NativeTabs.Trigger.Label>
@@ -17,6 +19,11 @@ export default function AppTabs() {
       <NativeTabs.Trigger name="orders">
         <NativeTabs.Trigger.Label>Lễ đã dâng</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="list.bullet.rectangle.fill" md="receipt_long" />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="donations">
+        <NativeTabs.Trigger.Label>Sổ công đức</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="book.closed.fill" md="menu_book" />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="profile">
