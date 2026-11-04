@@ -6,6 +6,7 @@
 import * as Crypto from 'expo-crypto';
 
 import { getItem, removeItem, setItem } from '@/lib/storage';
+import { toLocalPhone } from '@/lib/validation';
 
 export type User = {
   id: string;
@@ -46,8 +47,8 @@ async function findAccount(phone: string): Promise<StoredAccount | null> {
   return raw ? (JSON.parse(raw) as StoredAccount) : null;
 }
 
-function toUser({ id, name, phone, createdAt }: StoredAccount): User {
-  return { id, name, phone, createdAt };
+function toUser({ id, name, phone, createdAt, isGuest }: StoredAccount): User {
+  return isGuest ? { id, name, phone, createdAt, isGuest } : { id, name, phone, createdAt };
 }
 
 /** `phone` must already be in E.164 format (see `toE164`). */
@@ -85,18 +86,30 @@ export async function login(phone: string, password: string): Promise<User> {
 }
 
 /**
- * Guest sign-in: no password, no stored account. The id is derived from the phone
- * number so the same guest keeps their orders across sessions.
+ * Guest sign-in by phone number only, no password.
+ * A phone number seen for the first time automatically becomes a new user account
+ * named after that number;
+ * later sign-ins with the same number return to that account.
  * `phone` must already be in E.164 format (see `toE164`).
  */
 export async function loginAsGuest(phone: string): Promise<User> {
-  const user: User = {
-    id: `guest-${phone}`,
-    name: 'Khách',
-    phone,
-    createdAt: new Date().toISOString(),
-    isGuest: true,
-  };
+  let account = await findAccount(phone);
+  if (!account) {
+    account = {
+      id: Crypto.randomUUID(),
+      // A new guest's display name is their phone number.
+      name: toLocalPhone(phone),
+      phone,
+      createdAt: new Date().toISOString(),
+      isGuest: true,
+      // Guest accounts have no password, so password login can never match them.
+      salt: '',
+      passwordHash: '',
+    };
+    await setItem(await accountKey(phone), JSON.stringify(account));
+  }
+
+  const user = toUser(account);
   await setItem(SESSION_KEY, JSON.stringify(user));
   return user;
 }
@@ -110,13 +123,6 @@ export type ProfileChanges = {
 };
 
 export async function updateProfile(current: User, changes: ProfileChanges): Promise<User> {
-  if (current.isGuest) {
-    // Guests have no stored account; only the session copy is updated.
-    const user: User = { ...current, name: changes.name.trim(), phone: changes.phone };
-    await setItem(SESSION_KEY, JSON.stringify(user));
-    return user;
-  }
-
   const account = await findAccount(current.phone);
   if (!account || account.id !== current.id) {
     throw new AuthError('Không tìm thấy tài khoản, vui lòng đăng nhập lại.');
@@ -124,8 +130,12 @@ export async function updateProfile(current: User, changes: ProfileChanges): Pro
 
   const phoneChanged = changes.phone !== account.phone;
   if (phoneChanged) {
-    // The phone number is the login ID, so changing it requires proving account ownership.
-    if (!changes.password || (await hashPassword(changes.password, account.salt)) !== account.passwordHash) {
+    // The phone number is the login ID, so changing it requires proving account ownership
+    // (guest accounts have no password to prove).
+    if (
+      account.passwordHash &&
+      (!changes.password || (await hashPassword(changes.password, account.salt)) !== account.passwordHash)
+    ) {
       throw new AuthError('Mật khẩu hiện tại không đúng.');
     }
     if (await findAccount(changes.phone)) {

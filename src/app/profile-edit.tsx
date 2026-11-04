@@ -29,19 +29,21 @@ export default function ProfileEditScreen() {
   const newPhone = phoneValid ? toE164(country, phone) : null;
   const phoneChanged = newPhone !== null && newPhone !== user.phone;
   const nameChanged = name.trim() !== user.name;
+  // Guest accounts have no password, so changing their phone needs no confirmation.
+  const needsPassword = phoneChanged && !user.isGuest;
 
   const handleSave = async () => {
     const nextErrors: Errors = {
       name: validateName(name),
       phone: validatePhone(country, phone),
-      password: phoneChanged && !password ? 'Nhập mật khẩu để xác nhận đổi số điện thoại.' : undefined,
+      password: needsPassword && !password ?'Nhập mật khẩu để xác nhận đổi số điện thoại.' : undefined,
     };
     setErrors(nextErrors);
     if (Object.values(nextErrors).some(Boolean) || !newPhone) return;
 
     setSubmitting(true);
     try {
-      await updateProfile({ name, phone: newPhone, password: phoneChanged ? password : undefined });
+      await updateProfile({ name, phone: newPhone, password: needsPassword ? password : undefined });
       router.back();
     } catch (error) {
       setErrors({
@@ -92,18 +94,20 @@ export default function ProfileEditScreen() {
             <AppText style={styles.notice}>
               Số điện thoại dùng để đăng nhập. Sau khi đổi, bạn sẽ đăng nhập bằng số mới {newPhone}.
             </AppText>
-            <AppTextInput
-              label="Mật khẩu hiện tại"
-              placeholder="Nhập mật khẩu để xác nhận"
-              value={password}
-              onChangeText={setPassword}
-              error={errors.password}
-              secureTextEntry
-              autoComplete="current-password"
-              textContentType="password"
-              returnKeyType="done"
-              onSubmitEditing={handleSave}
-            />
+            {needsPassword ? (
+              <AppTextInput
+                label="Mật khẩu hiện tại"
+                placeholder="Nhập mật khẩu để xác nhận"
+                value={password}
+                onChangeText={setPassword}
+                error={errors.password}
+                secureTextEntry
+                autoComplete="current-password"
+                textContentType="password"
+                returnKeyType="done"
+                onSubmitEditing={handleSave}
+              />
+            ) : null}
           </>
         ) : null}
 

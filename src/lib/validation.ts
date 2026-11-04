@@ -40,6 +40,15 @@ export function splitE164(phone: string): { country: Country; national: string }
     : { country: DEFAULT_COUNTRY, national: digits };
 }
 
+/**
+ * Display form of an E.164 number: Vietnamese numbers in local form ("+84912345678" → "0912345678");
+ * other countries keep E.164 since their trunk prefixes differ.
+ */
+export function toLocalPhone(phone: string): string {
+  const { country, national } = splitE164(phone);
+  return country.code === 'VN' ? `0${national}` : phone;
+}
+
 export function validatePhone(country: Country, phone: string): string | undefined {
   if (!phone.trim()) return 'Vui lòng nhập số điện thoại.';
 
