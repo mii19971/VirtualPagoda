@@ -13,6 +13,8 @@ export type User = {
   /** E.164 format, e.g. "+84912345678". */
   phone: string;
   createdAt: string;
+  /** Guest session: signed in by phone number only, no stored account. */
+  isGuest?: boolean;
 };
 
 type StoredAccount = User & {
@@ -82,6 +84,23 @@ export async function login(phone: string, password: string): Promise<User> {
   return user;
 }
 
+/**
+ * Guest sign-in: no password, no stored account. The id is derived from the phone
+ * number so the same guest keeps their orders across sessions.
+ * `phone` must already be in E.164 format (see `toE164`).
+ */
+export async function loginAsGuest(phone: string): Promise<User> {
+  const user: User = {
+    id: `guest-${phone}`,
+    name: 'Khách',
+    phone,
+    createdAt: new Date().toISOString(),
+    isGuest: true,
+  };
+  await setItem(SESSION_KEY, JSON.stringify(user));
+  return user;
+}
+
 export type ProfileChanges = {
   name: string;
   /** E.164 format. */
@@ -91,6 +110,13 @@ export type ProfileChanges = {
 };
 
 export async function updateProfile(current: User, changes: ProfileChanges): Promise<User> {
+  if (current.isGuest) {
+    // Guests have no stored account; only the session copy is updated.
+    const user: User = { ...current, name: changes.name.trim(), phone: changes.phone };
+    await setItem(SESSION_KEY, JSON.stringify(user));
+    return user;
+  }
+
   const account = await findAccount(current.phone);
   if (!account || account.id !== current.id) {
     throw new AuthError('Không tìm thấy tài khoản, vui lòng đăng nhập lại.');

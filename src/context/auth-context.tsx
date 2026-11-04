@@ -7,6 +7,7 @@ type AuthContextValue = {
   user: User | null;
   isLoading: boolean;
   signIn: (phone: string, password: string) => Promise<void>;
+  signInAsGuest: (phone: string) => Promise<void>;
   signUp: (name: string, phone: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (changes: ProfileChanges) => Promise<void>;
@@ -30,6 +31,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     user,
     isLoading,
     signIn: async (phone, password) => setUser(await authService.login(phone, password)),
+    signInAsGuest: async (phone) => setUser(await authService.loginAsGuest(phone)),
     signUp: async (name, phone, password) =>
       setUser(await authService.register(name, phone, password)),
     signOut: async () => {
