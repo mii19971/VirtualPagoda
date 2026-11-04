@@ -1,35 +1,48 @@
-import { NativeTabs } from 'expo-router/native-tabs';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { Tabs } from 'expo-router';
+import type { ComponentProps } from 'react';
+import type { ColorValue } from 'react-native';
 
 import { COLORS } from '@/constants/colors';
 
+type IconName = ComponentProps<typeof MaterialIcons>['name'];
+
+// JS tabs rather than NativeTabs: in Expo Go on Android the native tab bar showed only the
+// selected tab's label (Material Symbols icons did not load), so the other tabs looked missing.
+// The icon font ships with the app, and every tab always shows its label.
+function tabIcon(name: IconName) {
+  return function TabIcon({ color, size }: { color: ColorValue; size: number }) {
+    // The tab bar passes the resolved tint color string.
+    return <MaterialIcons name={name} color={color as string} size={size} />;
+  };
+}
+
 export default function AppTabs() {
   return (
-    <NativeTabs
-      backgroundColor={COLORS.surface}
-      indicatorColor={COLORS.border}
-      tintColor={COLORS.primary}
-      // Android hides unselected labels once there are 4+ tabs; always show them.
-      labelVisibilityMode="labeled"
-      labelStyle={{ selected: { color: COLORS.primary } }}>
-      <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>Chùa & Đền</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="building.columns.fill" md="temple_buddhist" />
-      </NativeTabs.Trigger>
-
-      <NativeTabs.Trigger name="orders">
-        <NativeTabs.Trigger.Label>Lễ đã dâng</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="list.bullet.rectangle.fill" md="receipt_long" />
-      </NativeTabs.Trigger>
-
-      <NativeTabs.Trigger name="donations">
-        <NativeTabs.Trigger.Label>Sổ công đức</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="book.closed.fill" md="menu_book" />
-      </NativeTabs.Trigger>
-
-      <NativeTabs.Trigger name="profile">
-        <NativeTabs.Trigger.Label>Tài khoản</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="person.crop.circle.fill" md="account_circle" />
-      </NativeTabs.Trigger>
-    </NativeTabs>
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: COLORS.primary,
+        tabBarInactiveTintColor: COLORS.textSecondary,
+        tabBarStyle: { backgroundColor: COLORS.surface, borderTopColor: COLORS.border },
+        tabBarLabelStyle: { fontSize: 12, fontWeight: '600' },
+      }}>
+      <Tabs.Screen
+        name="index"
+        options={{ title: 'Chùa & Đền', tabBarIcon: tabIcon('temple-buddhist') }}
+      />
+      <Tabs.Screen
+        name="orders"
+        options={{ title: 'Lễ đã dâng', tabBarIcon: tabIcon('receipt-long') }}
+      />
+      <Tabs.Screen
+        name="donations"
+        options={{ title: 'Sổ công đức', tabBarIcon: tabIcon('menu-book') }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{ title: 'Tài khoản', tabBarIcon: tabIcon('account-circle') }}
+      />
+    </Tabs>
   );
 }
