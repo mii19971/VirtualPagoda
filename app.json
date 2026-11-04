@@ -34,7 +34,15 @@
         }
       ],
       "expo-secure-store",
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Cho phép $(PRODUCT_NAME) dùng camera để chụp phiếu công đức.",
+          "photosPermission": "Cho phép $(PRODUCT_NAME) chọn ảnh phiếu công đức từ thư viện.",
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
