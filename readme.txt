@@ -1,4 +1,4 @@
-npx create-expo-app@latest VirtualPagoda
+npx create-expo-app@latest ChuaNha
 
 npx expo start
 

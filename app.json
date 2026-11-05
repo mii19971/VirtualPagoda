@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "VirtualPagoda",
-    "slug": "VirtualPagoda",
+    "name": "Chùa Nhà",
+    "slug": "chua-nha",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "virtualpagoda",
+    "scheme": "chuanha",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"

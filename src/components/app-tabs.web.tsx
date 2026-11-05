@@ -46,7 +46,7 @@ export function CustomTabList(props: TabListProps) {
   return (
     <View {...props} style={styles.tabListContainer}>
       <View style={styles.innerContainer}>
-        <AppText style={styles.brandText}>Virtual Pagoda</AppText>
+        <AppText style={styles.brandText}>Chùa Nhà</AppText>
         {props.children}
         <View style={styles.separator} />
         <Pressable

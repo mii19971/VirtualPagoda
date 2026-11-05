@@ -2,8 +2,8 @@
   "ExpandedNodes": [
     "",
     "\\src",
-    "\\src\\app",
-    "\\src\\app\\(auth)",
+    "\\src\\components",
+    "\\src\\components\\donation",
     "\\src\\constants",
     "\\src\\context",
     "\\src\\data",
@@ -11,6 +11,6 @@
     "\\src\\server",
     "\\src\\services"
   ],
-  "SelectedNode": "\\src\\components\\donation\\DonationForm.tsx",
+  "SelectedNode": "\\.env.example",
   "PreviewInSolutionExplorer": false
 }

@@ -33,9 +33,9 @@ export default function AuthForm({ title, subtitle, formError, children, footer 
             source={require('@/assets/images/logo.svg')}
             style={styles.logo}
             contentFit="contain"
-            accessibilityLabel="Logo Virtual Pagoda – bánh xe Pháp luân trên tòa sen"
+            accessibilityLabel="Logo Chùa Nhà – bánh xe Pháp luân trên tòa sen"
           />
-          <AppText style={styles.appName}>Virtual Pagoda</AppText>
+          <AppText style={styles.appName}>Chùa Nhà</AppText>
           <AppText style={styles.tagline}>Không gian tâm linh số</AppText>
         </View>
 
