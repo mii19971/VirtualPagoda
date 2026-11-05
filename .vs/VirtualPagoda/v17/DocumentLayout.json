@@ -42,7 +42,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 10,
+          "SelectedChildIndex": 11,
           "Children": [
             {
               "$type": "Bookmark",
@@ -63,6 +63,10 @@
             {
               "$type": "Bookmark",
               "Name": "ST:138:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
             },
             {
               "$type": "Bookmark",
@@ -107,8 +111,7 @@
               "RelativeToolTip": "src\\server\\extract-receipt.ts",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAnAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2026-11-04T10:25:56.423Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-11-04T10:25:56.423Z"
             },
             {
               "$type": "Document",
@@ -144,8 +147,7 @@
               "RelativeToolTip": "src\\components\\donation\\DonationForm.tsx",
               "ViewState": "AgIAAJEAAAAAAAAAAAAAAK0AAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2026-11-04T06:17:25.477Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-11-04T06:17:25.477Z"
             },
             {
               "$type": "Document",
